@@ -24,6 +24,13 @@ export default function Dashboard() {
             </span>
           </p>
 
+          <a
+            href="/sos"
+            className="inline-block bg-pink-600 hover:bg-pink-700 text-white px-5 py-2 rounded-lg mr-4"
+          >
+            Open SOS Module
+          </a>
+
           <button
             onClick={handleLogout}
             className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg"
