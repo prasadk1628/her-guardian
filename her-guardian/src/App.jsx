@@ -1,3 +1,5 @@
+import { Routes, Route, Navigate } from "react-router-dom";
+import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import SOS from "./pages/SOS";
@@ -9,24 +11,24 @@ import { useAuth } from "./context/AuthContext";
 function App() {
   const { user } = useAuth();
 
-  const path = window.location.pathname;
-
   if (!user) {
     return <Login />;
   }
 
-  if (path === "/sos") {
-    return <SOS />;
-  }
-
-  if (path === "/contacts") {
-    return <Contacts />;
-  }
-  if (path === "/helpline") {
-    return <Helpline />;
-  }
-
-  return <Dashboard />;
+  return (
+    <>
+      <Navbar />
+  
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/sos" element={<SOS />} />
+        <Route path="/contacts" element={<Contacts />} />
+        <Route path="/helpline" element={<Helpline />} />
+  
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </>
+  );
 }
 
 export default App;
