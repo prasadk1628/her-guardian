@@ -31,6 +31,19 @@ export default function Dashboard() {
             Open SOS Module
           </a>
 
+          <a
+            href="/contacts"
+            className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg mr-4"
+          >
+            Trusted Contacts
+          </a>
+          <a
+            href="/helpline"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg mr-4 mt-4"
+          >
+            Emergency Helplines
+          </a>
+
           <button
             onClick={handleLogout}
             className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg"
