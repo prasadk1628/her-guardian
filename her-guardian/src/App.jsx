@@ -1,14 +1,15 @@
-import { auth } from "./firebase/config";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+
+import { useAuth } from "./context/AuthContext";
 
 function App() {
-  console.log(auth);
+  const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-pink-100 flex items-center justify-center">
-      <h1 className="text-5xl font-bold text-pink-600">
-        Firebase Connected ✅
-      </h1>
-    </div>
+    <>
+      {user ? <Dashboard /> : <Login />}
+    </>
   );
 }
 
