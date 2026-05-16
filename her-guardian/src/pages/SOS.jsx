@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export default function SOS() {
   const [location, setLocation] = useState(null);
+  const [alertSent, setAlertSent] = useState(true);
   const [loading, setLoading] = useState(false);
 
   function handleGetLocation() {
@@ -31,7 +32,7 @@ export default function SOS() {
   }
 
   return (
-    <div className="min-h-screen bg-pink-50 flex items-center justify-center px-4">
+    <div className="min-h-screen pb-24 bg-pink-50 flex items-center justify-center px-4">
       <div className="bg-white shadow-xl rounded-3xl p-8 w-full max-w-md text-center">
         <h1 className="text-3xl font-bold text-pink-600 mb-4">
           Emergency SOS

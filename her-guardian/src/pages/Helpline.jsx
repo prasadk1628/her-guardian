@@ -23,18 +23,25 @@ const helplines = [
 
 export default function Helpline() {
   return (
-    <div className="min-h-screen bg-pink-50 p-6">
+    <div className="min-h-screen pb-24  bg-pink-50 p-6">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white shadow-xl rounded-2xl p-6">
-          <h1 className="text-3xl font-bold text-pink-600 mb-6">
-            Emergency Helplines
-          </h1>
+        <div className="bg-white rounded-3xl border border-pink-100 p-6">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-pink-600">
+              Emergency Helplines
+            </h1>
+
+            <p className="text-gray-500 mt-2">
+              Quick access to important emergency services.
+            </p>
+          </div>
+
 
           <div className="space-y-4">
             {helplines.map((helpline, index) => (
               <div
                 key={index}
-                className="bg-pink-50 border border-pink-100 rounded-xl p-4 flex items-center justify-between"
+                className="bg-pink-50 border border-pink-100 rounded-2xl p-5 flex items-center justify-between"
               >
                 <div>
                   <h2 className="font-semibold text-lg">
@@ -48,7 +55,7 @@ export default function Helpline() {
 
                 <a
                   href={`tel:${helpline.number}`}
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg"
+                  className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2 rounded-xl font-medium transition"
                 >
                   Call
                 </a>

@@ -1,52 +1,65 @@
 import { Link, useLocation } from "react-router-dom";
-import { signOut } from "firebase/auth";
-
-import { auth } from "../firebase/config";
 
 export default function Navbar() {
   const location = useLocation();
 
   const navItems = [
-    { path: "/", label: "Dashboard" },
-    { path: "/sos", label: "SOS" },
-    { path: "/contacts", label: "Contacts" },
-    { path: "/helpline", label: "Helplines" },
+    {
+      path: "/",
+      label: "Home",
+      icon: "🏠",
+    },
+    {
+      path: "/contacts",
+      label: "Contacts",
+      icon: "👥",
+    },
+    {
+      path: "/helpline",
+      label: "Help",
+      icon: "📞",
+    },
+    {
+      path: "/chat",
+      label: "Chat",
+      icon: "💬",
+    },
+    {
+      path: "/profile",
+      label: "Profile",
+      icon: "👤",
+    }
   ];
 
-  async function handleLogout() {
-    await signOut(auth);
-  }
-
   return (
-    <nav className="bg-white shadow-md border-b border-pink-100">
-      <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-pink-600">
-          Her Guardian
-        </h1>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-pink-100 shadow-lg z-50">
+      <div className="max-w-md mx-auto flex justify-around items-center py-2">
 
-        <div className="flex items-center gap-4">
-          {navItems.map((item) => (
+        {navItems.map((item) => {
+          const active = location.pathname === item.path;
+
+          return (
             <Link
               key={item.path}
               to={item.path}
-              className={`px-4 py-2 rounded-lg transition ${
-                location.pathname === item.path
-                  ? "bg-pink-600 text-white"
-                  : "text-gray-700 hover:bg-pink-100"
+              className={`flex flex-col items-center text-xs transition ${
+                active
+                  ? "text-pink-600"
+                  : "text-gray-400"
               }`}
             >
-              {item.label}
-            </Link>
-          ))}
+              <span className="text-2xl">
+                {item.icon}
+              </span>
 
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
-          >
-            Logout
-          </button>
-        </div>
+              <span className="mt-1">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+
       </div>
-    </nav>
+    </div>
   );
 }
