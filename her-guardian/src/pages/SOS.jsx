@@ -132,7 +132,26 @@ export default function SOS() {
               Open in Google Maps
             </a>
 
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(
+                `🚨 EMERGENCY ALERT 🚨
+              
+            I may be in danger.
+              
+            My live location:
+            https://www.google.com/maps?q=${location.latitude},${location.longitude}
+              
+            Please contact me immediately.`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl font-semibold text-center mb-6 transition"
+            >
+              Share via WhatsApp
+            </a>
+
           </div>
+
 
         )}
 
