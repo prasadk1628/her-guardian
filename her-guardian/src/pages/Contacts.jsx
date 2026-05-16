@@ -1,23 +1,52 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+
+import { db } from "../firebase/config";
+
+import { useAuth } from "../context/AuthContext";
 
 export default function Contacts() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [priority, setPriority] = useState("1");
+  const { user } = useAuth();
 
   const [editId, setEditId] = useState(null);
   const [contacts, setContacts] = useState([]);
 
-  function handleAddContact(e) {
+  async function handleAddContact(e) {
     e.preventDefault();
-
+    
     if (!name || !phone) {
       alert("Please fill all fields");
       return;
     }
-
+  
     // Edit existing contact
     if (editId) {
+    
+      const contactRef = doc(
+        db,
+        "users",
+        user.uid,
+        "contacts",
+        editId
+      );
+    
+      await updateDoc(contactRef, {
+        name,
+        phone,
+        priority,
+      });
+    
       const updatedContacts = contacts.map((contact) =>
         contact.id === editId
           ? {
@@ -28,39 +57,69 @@ export default function Contacts() {
             }
           : contact
       );
-
+    
       setContacts(updatedContacts);
-
+    
       setEditId(null);
       setName("");
       setPhone("");
       setPriority("1");
-
+    
       return;
     }
-
+  
     // Limit contacts
     if (contacts.length >= 5) {
       alert("Maximum 5 trusted contacts allowed");
       return;
     }
-
+  
     // Add new contact
+    const contactsRef = collection(
+      db,
+      "users",
+      user.uid,
+      "contacts"
+    );
+  
     const newContact = {
-      id: Date.now(),
       name,
       phone,
       priority,
     };
-
-    setContacts([...contacts, newContact]);
-
+  
+    const docRef = await addDoc(
+      contactsRef,
+      newContact
+    );
+  
+    setContacts([
+      ...contacts,
+      {
+        id: docRef.id,
+        ...newContact,
+      },
+    ]);
+  
     setName("");
     setPhone("");
     setPriority("1");
   }
 
-  function handleDelete(id) {
+
+
+  async function handleDelete(id) {
+
+    const contactRef = doc(
+      db,
+      "users",
+      user.uid,
+      "contacts",
+      id
+    );
+
+    await deleteDoc(contactRef);
+
     const updatedContacts = contacts.filter(
       (contact) => contact.id !== id
     );
@@ -68,13 +127,32 @@ export default function Contacts() {
     setContacts(updatedContacts);
   }
 
-  function handleEdit(contact) {
-    setName(contact.name);
-    setPhone(contact.phone);
-    setPriority(contact.priority);
+  useEffect(() => {
 
-    setEditId(contact.id);
-  }
+    async function fetchContacts() {
+
+      if (!user) return;
+
+      const contactsRef = collection(
+        db,
+        "users",
+        user.uid,
+        "contacts"
+      );
+
+      const snapshot = await getDocs(contactsRef);
+
+      const fetchedContacts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setContacts(fetchedContacts);
+    }
+
+    fetchContacts();
+
+  }, [user]);
 
   return (
     <div className="min-h-screen pb-24 bg-pink-50 p-6">
