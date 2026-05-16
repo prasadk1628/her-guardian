@@ -1,15 +1,154 @@
+import { useState } from "react";
+import { useEffect } from "react";
+
 import { signOut } from "firebase/auth";
+
+import {
+  collection,
+  addDoc,
+  getDocs,
+  onSnapshot,
+  serverTimestamp,
+  query,
+  orderBy,
+  limit,
+} from "firebase/firestore";
+
 import { Link } from "react-router-dom";
 
-import { auth } from "../firebase/config";
+import { auth, db } from "../firebase/config";
+
 import { useAuth } from "../context/AuthContext";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [isSOSActive, setIsSOSActive] = useState(false);
+  const [contacts, setContacts] = useState([]);
+  const [activities, setActivities] = useState([]);
+
+  const [location, setLocation] = useState(null);
+
+  const [sendingMessage, setSendingMessage] = useState(
+    "Sending emergency alert..."
+  );
 
   async function handleLogout() {
     await signOut(auth);
   }
+
+  async function handleSOS() {
+
+    setIsSOSActive(true);
+
+    try {
+
+      // Get location
+      navigator.geolocation.getCurrentPosition(
+
+        async (position) => {
+
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          setLocation({
+            latitude,
+            longitude,
+          });
+
+          // Fetch trusted contacts
+          const contactsRef = collection(
+            db,
+            "users",
+            user.uid,
+            "contacts"
+          );
+
+          const contactsSnap = await getDocs(
+            contactsRef
+          );
+
+          const fetchedContacts =
+            contactsSnap.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+
+          setContacts(fetchedContacts);
+
+          // Save SOS alert
+          const alertsRef = collection(
+            db,
+            "users",
+            user.uid,
+            "sosAlerts"
+          );
+
+          await addDoc(alertsRef, {
+            latitude,
+            longitude,
+            trustedContacts: fetchedContacts.length,
+            createdAt: serverTimestamp(),
+            status: "active",
+          });
+
+          setSendingMessage(
+            `Emergency alert sent to ${fetchedContacts.length} trusted contacts`
+          );
+        },
+
+        () => {
+
+          setSendingMessage(
+            "Failed to access location."
+          );
+        }
+
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      setSendingMessage(
+        "Emergency activation failed."
+      );
+    }
+  }
+
+  useEffect(() => {
+    
+    if (!user) return;
+    
+    const alertsRef = collection(
+      db,
+      "users",
+      user.uid,
+      "sosAlerts"
+    );
+  
+    const q = query(
+      alertsRef,
+      orderBy("createdAt", "desc"),
+      limit(5)
+    );
+  
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+      
+        const fetchedActivities =
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+        
+        setActivities(fetchedActivities);
+      }
+    );
+  
+    return () => unsubscribe();
+  
+  }, [user]);
 
   return (
     <div className="min-h-screen pb-24 bg-pink-50 p-4">
@@ -32,8 +171,8 @@ export default function Dashboard() {
         </div>
         <div className="flex justify-center mb-10 mt-8">
 
-          <Link
-            to="/sos"
+          <button
+            onClick={handleSOS}
             className="w-44 h-44 rounded-full bg-pink-600 flex flex-col items-center justify-center text-white shadow-[0_0_80px_rgba(236,72,153,0.35)] hover:scale-105 transition"
           >
             <span className="text-5xl font-bold tracking-wide">
@@ -43,7 +182,7 @@ export default function Dashboard() {
             <span className="text-sm mt-2 uppercase tracking-widest">
               Tap for Help
             </span>
-          </Link>
+          </button>
 
         </div>
 
@@ -118,57 +257,144 @@ export default function Dashboard() {
         </div>
                 {/* Recent Activity */}
         <div className="mt-8">
+
           <h2 className="text-sm font-bold uppercase tracking-widest text-gray-800 mb-4">
             Recent Activity
           </h2>
 
           <div className="space-y-3">
 
-            <div className="bg-white rounded-2xl p-4 border border-pink-100 flex items-center">
-              <div className="w-3 h-3 rounded-full bg-green-500 mr-4"></div>
-
-              <div className="flex-1">
-                <p className="font-medium text-gray-800">
-                  Location shared successfully
+            {activities.length === 0 ? (
+            
+              <div className="bg-white rounded-2xl p-4 border border-pink-100">
+              
+                <p className="text-gray-500">
+                  No recent activity yet.
                 </p>
-
-                <p className="text-sm text-gray-500">
-                  2 minutes ago
-                </p>
+            
               </div>
-            </div>
 
-            <div className="bg-white rounded-2xl p-4 border border-pink-100 flex items-center">
-              <div className="w-3 h-3 rounded-full bg-pink-500 mr-4"></div>
+            ) : (
+            
+              activities.map((activity) => (
+              
+                <div
+                  key={activity.id}
+                  className="bg-white rounded-2xl p-4 border border-pink-100 flex items-center"
+                >
+                
+                  <div className="w-3 h-3 rounded-full bg-red-500 mr-4"></div>
+              
+                  <div className="flex-1">
 
-              <div className="flex-1">
-                <p className="font-medium text-gray-800">
-                  SOS alert triggered
-                </p>
+                    <p className="font-medium text-gray-800">
+                      SOS alert triggered
+                    </p>
 
-                <p className="text-sm text-gray-500">
-                  Yesterday
-                </p>
-              </div>
-            </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Status: {activity.status}
+                    </p>
 
-            <div className="bg-white rounded-2xl p-4 border border-pink-100 flex items-center">
-              <div className="w-3 h-3 rounded-full bg-yellow-500 mr-4"></div>
+                    {activity.latitude && activity.longitude && (
+                    
+                      <p className="text-xs text-pink-500 mt-2">
+                        📍 {activity.latitude.toFixed(3)},{" "}
+                        {activity.longitude.toFixed(3)}
+                      </p>
 
-              <div className="flex-1">
-                <p className="font-medium text-gray-800">
-                  Trusted contact added
-                </p>
+                    )}
 
-                <p className="text-sm text-gray-500">
-                  2 days ago
-                </p>
-              </div>
-            </div>
+                    {activity.createdAt?.seconds && (
+                    
+                      <p className="text-xs text-gray-400 mt-2">
+                      
+                        {new Date(
+                          activity.createdAt.seconds * 1000
+                        ).toLocaleString()}
+
+                      </p>
+
+                    )}
+              
+
+              
+                  </div>
+              
+                </div>
+
+              ))
+            
+            )}
 
           </div>
+          
         </div>
       </div>
+
+      {isSOSActive && (
+            
+        <div className="fixed inset-0 bg-pink-700/95 z-50 flex flex-col items-center justify-center text-white px-6 text-center">
+        
+          <div className="text-7xl mb-6">
+            🚨
+          </div>
+            
+          <h1 className="text-5xl font-bold mb-4">
+            SOS ALERT SENT!
+          </h1>
+            
+          <p className="text-xl text-pink-100 mb-8 max-w-sm">
+            {sendingMessage}
+          </p>
+            
+
+          {contacts.length > 0 && (
+                    
+            <div className="mb-8 space-y-2">
+            
+              {contacts.slice(0, 3).map((contact) => (
+              
+                <div
+                  key={contact.id}
+                  className="bg-white/10 border border-white/20 rounded-xl px-4 py-2"
+                >
+                
+                  Alerting {contact.name}
+              
+                </div>
+          
+              ))}
+          
+            </div>
+          
+          )}
+          {location && (
+
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-4 mb-8 text-sm">
+            
+              <p>
+                Latitude: {location.latitude}
+              </p>
+
+              <p className="mt-1">
+                Longitude: {location.longitude}
+              </p>
+
+            </div>
+
+          )}
+            
+          <button
+            onClick={() => setIsSOSActive(false)}
+            className="border-2 border-white px-10 py-4 rounded-2xl text-xl font-semibold hover:bg-white hover:text-pink-700 transition"
+          >
+            Cancel SOS
+          </button>
+            
+        </div>
+      
+      )}
+
     </div>
   );
 }
