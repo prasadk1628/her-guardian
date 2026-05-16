@@ -333,7 +333,9 @@ export default function Dashboard() {
 
       {isSOSActive && (
             
-        <div className="fixed inset-0 bg-pink-700/95 z-50 flex flex-col items-center justify-center text-white px-6 text-center">
+        <div className="fixed inset-0 bg-pink-700/95 z-50 overflow-y-auto">
+
+          <div className="min-h-screen flex flex-col items-center justify-center text-white px-6 py-10 text-center">
         
           <div className="text-7xl mb-6">
             🚨
@@ -391,6 +393,7 @@ export default function Dashboard() {
             Cancel SOS
           </button>
             
+        </div>
         </div>
       
       )}
