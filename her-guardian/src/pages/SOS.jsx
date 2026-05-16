@@ -133,7 +133,7 @@ export default function SOS() {
             </a>
 
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(
+              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
                 `🚨 EMERGENCY ALERT 🚨
               
             I may be in danger.
@@ -149,12 +149,6 @@ export default function SOS() {
             >
               Share via WhatsApp
             </a>
-
-          </div>
-
-
-        )}
-
         {/* Success Alert */}
         {alertSent && (
 
